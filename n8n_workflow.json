@@ -1,0 +1,56 @@
+{
+  "name": "MCP Roster Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "monthsInterval": 1,
+              "triggerAtDayOfMonth": 25
+            }
+          ]
+        }
+      },
+      "name": "Monthly Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);\nreturn [{\n  json: {\n    month: nextMonth.getMonth() + 1,\n    year: nextMonth.getFullYear()\n  }\n}];"
+      },
+      "name": "Calculate Next Month",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-render-url.onrender.com/generate-roster",
+        "sendBody": True,
+        "contentType": "json",
+        "body": {
+          "month": "={{ $json.month }}",
+          "year": "={{ $json.year }}",
+          "include_excel": True
+        }
+      },
+      "name": "Generate Roster",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Monthly Trigger": {
+      "main": [[{"node": "Calculate Next Month", "type": "main", "index": 0}]]
+    },
+    "Calculate Next Month": {
+      "main": [[{"node": "Generate Roster", "type": "main", "index": 0}]]
+    }
+  }
+}
